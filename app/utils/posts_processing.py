@@ -1,28 +1,14 @@
-from aiogram import Dispatcher, Router
-from aiogram.types import Message
-from aiogram.filters import CommandStart
-from aiogram_dialog import Dialog, Window, DialogManager, StartMode
-from aiogram_dialog.widgets.text import Const
-from aiogram_dialog.widgets.input import MessageInput
+import _io
 
-from app import states
-from app.services.ai.implementations.chatgpt import ChatGptConnector
+from aiogram import Bot
+from aiogram.types import BufferedInputFile
+from pyrogram.types import Message
 
-
-user_start_router = Router()
+from app.services.ai.ai_connector import IAiConnector
+from app.services.database.dao import IDAO
 
 
-@user_start_router.message(CommandStart())
-async def send_start_message(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(states.user.MainMenu.MAIN_STATE, mode=StartMode.RESET_STACK)
-
-
-async def test(message: Message, widget: MessageInput, dialog_manager: DialogManager) -> None:
-    if not message.caption and not message.text:
-        return
-    await message.answer("Обрабатываю...")
-    ai: ChatGptConnector = dialog_manager.middleware_data["ai"]
-
+async def processing(message: Message, bot: Bot, ai: IAiConnector, db: IDAO) -> None:
     prompt = """
 Найди в этом тексте модель машины, основные характеристики и прочее описание.
 Отправь найденную информацию строго в формате ниже, вставив её вместо фигурных скобок.
@@ -48,25 +34,12 @@ async def test(message: Message, widget: MessageInput, dialog_manager: DialogMan
 
 Вот текст:\n
 """
+    img = await message.download(in_memory=True)  # LMAO it returns _io.BytesIO, not str.
+    # message_text = ai.convert_text(prompt=prompt, original_text=message.caption)
 
-    await message.answer_photo(
-        photo=message.photo[0].file_id,
-        caption=ai.convert_text(prompt=prompt, original_text=message.caption),
+    await bot.send_photo(
+        chat_id=889497246,
+        photo=BufferedInputFile(file=img.getvalue(), filename="filename"),
+        caption=message.caption,
         parse_mode="HTML"
     )
-
-
-start_window = Window(
-    Const("Добро пожаловать и бла-бла-бла"),
-    MessageInput(test),
-    state=states.user.MainMenu.MAIN_STATE
-)
-
-
-start_dialog = Dialog(
-    start_window
-)
-
-
-def setup_start(dp: Dispatcher) -> None:
-    dp.include_routers(user_start_router, start_dialog)
