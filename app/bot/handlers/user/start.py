@@ -3,6 +3,7 @@ from aiogram import Dispatcher, Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
+from aiogram_dialog.widgets.common import Whenable
 from aiogram_dialog.widgets.kbd import WebApp, Button
 from aiogram_dialog.widgets.text import Const, Format
 
@@ -30,23 +31,37 @@ async def menu_getter(dialog_manager: DialogManager, **kwargs) -> dict:
 
     return {
         "subscribed": is_subscribed,
-        "not_subscribed": not is_subscribed,
+        "is_trial_used": user.is_trial_used,
         "menu_message_text": message_text
     }
 
 
 async def start_trial(c: CallbackQuery, button: Button, dialog_manager: DialogManager) -> None:
     db: PostgresDAO = dialog_manager.middleware_data["db"]
-    # TODO: add flag `is_used_trial`.
-    await db.add_subscription(c.from_user.id, 3)
+    user_id: int = c.from_user.id
+    await db.update_user_trial_status(user_id)
+    await db.add_subscription(user_id, 3)
     await db.commit()
     await dialog_manager.switch_to(states.user.MainMenu.MAIN_STATE)
+
+
+async def buy_subscription(c: CallbackQuery, button: Button, dialog_manager: DialogManager) -> None:
+    pass
+
+
+def is_show_trial(data: dict, widget: Whenable, dialog_manager: DialogManager) -> bool:
+    return not data["subscribed"] and not data["is_trial_used"]
+
+
+def is_show_buy_subscription(data: dict, widget: Whenable, dialog_manager: DialogManager) -> bool:
+    return not data["subscribed"] and data["is_trial_used"]
 
 
 start_window = Window(
     Format("{menu_message_text}"),
     WebApp(Const("Open webapp"), Const("https://0.0.0.0:8432"), "id_wa", when="subscribed"),
-    Button(Const("Попробовать бесплатно"), id="start_trial", on_click=..., when="not_subscribed"),
+    Button(Const("Попробовать бесплатно"), id="start_trial", on_click=start_trial, when=is_show_trial),
+    Button(Const("Купить подписку"), id="buy_subscription", on_click=buy_subscription, when=is_show_buy_subscription),
     state=states.user.MainMenu.MAIN_STATE,
     getter=menu_getter
 )

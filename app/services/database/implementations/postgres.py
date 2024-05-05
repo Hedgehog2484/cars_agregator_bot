@@ -31,6 +31,9 @@ class PostgresDAO(IDAO):
     async def reset_subscription(self, user_id: int) -> None:
         pass
 
+    async def update_user_trial_status(self, user_id: int) -> None:
+        pass
+
     async def get_user_by_id(self, user_id: int) -> User | None:
         q = select(users_table.c).where(users_table.c.tg_id == user_id)
         res = await self._session.execute(q)

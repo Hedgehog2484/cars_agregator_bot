@@ -22,6 +22,10 @@ class IDAO(ABC):
         pass
 
     @abstractmethod
+    async def update_user_trial_status(self, user_id: int) -> None:
+        pass
+
+    @abstractmethod
     async def get_user_by_id(self, user_id: int) -> User | None:
         pass
 

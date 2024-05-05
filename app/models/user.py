@@ -7,3 +7,4 @@ class User:
     id: int
     is_admin: bool
     subscription_ends: datetime
+    is_trial_used: bool
