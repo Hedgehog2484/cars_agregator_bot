@@ -1,3 +1,4 @@
+from datetime import datetime
 from dataclasses import dataclass
 
 
@@ -5,3 +6,4 @@ from dataclasses import dataclass
 class User:
     id: int
     is_admin: bool
+    subscription_ends: datetime

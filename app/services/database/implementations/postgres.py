@@ -25,6 +25,12 @@ class PostgresDAO(IDAO):
         q = insert(users_table).values(tg_id=user_id, is_admin=is_admin)
         await self._session.execute(q)
 
+    async def add_subscription(self, user_id: int, days: int) -> None:
+        pass
+
+    async def reset_subscription(self, user_id: int) -> None:
+        pass
+
     async def get_user_by_id(self, user_id: int) -> User | None:
         q = select(users_table.c).where(users_table.c.tg_id == user_id)
         res = await self._session.execute(q)
@@ -38,6 +44,24 @@ class PostgresDAO(IDAO):
         for user in res.all():
             users.append(User(*user))
         return users
+
+    async def add_user_filters(self, user_id: int) -> None:
+        pass
+
+    async def get_users_ids_by_filters(
+            self,
+            model: str = None,
+            price_min: int = None,
+            price_max: int = None,
+            mileage_min: int = None,
+            mileage_max: int = None,
+            city: list[str] = None
+    ) -> list[int]:
+        pass
+
+    async def delete_user_filters(self, user_id: int) -> None:
+        # TODO: don't forget to use this when subscription is ends.
+        pass
 
     async def commit(self) -> None:
         await self._session.commit()

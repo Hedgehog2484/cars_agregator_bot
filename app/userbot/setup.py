@@ -3,9 +3,9 @@ from pyrogram import Client, idle
 from app.userbot.handlers import setup_handlers
 
 
-async def setup_userbot(bot, ai, db) -> Client:
+async def setup_userbot(bot, ai, db, scheduler) -> Client:
     client = Client("agregator_userbot")
-    setup_handlers(client, bot, ai, db)
+    setup_handlers(client, bot, ai, db, scheduler)
     return client
 
 

@@ -1,14 +1,35 @@
 import _io
+import datetime
 
 from aiogram import Bot
 from aiogram.types import BufferedInputFile
 from pyrogram.types import Message
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.services.ai.ai_connector import IAiConnector
 from app.services.database.dao import IDAO
 
 
-async def processing(message: Message, bot: Bot, ai: IAiConnector, db: IDAO) -> None:
+async def posts_mailing(users_ids: list, message_text: str, photo: _io.BytesIO, bot: Bot) -> None:
+    for user_id in users_ids:
+        try:
+            await bot.send_photo(
+                chat_id=889497246,
+                photo=BufferedInputFile(file=photo.getvalue(), filename="filename"),
+                caption=message_text,
+                parse_mode="HTML"
+            )
+        except:
+            pass
+
+
+async def processing(
+        message: Message,
+        bot: Bot,
+        ai: IAiConnector,
+        db: IDAO,
+        scheduler: AsyncIOScheduler
+) -> None:
     prompt = """
 Найди в этом тексте модель машины, основные характеристики и прочее описание.
 Отправь найденную информацию строго в формате ниже, вставив её вместо фигурных скобок.
@@ -36,10 +57,20 @@ async def processing(message: Message, bot: Bot, ai: IAiConnector, db: IDAO) -> 
 """
     img = await message.download(in_memory=True)  # LMAO it returns _io.BytesIO, not str.
     # message_text = ai.convert_text(prompt=prompt, original_text=message.caption)
+    message_text = ""
 
+    users_ids = await db.get_users_ids_by_filters()  # TODO: как достать данные из объявления???
+    scheduler.add_job(
+        func=posts_mailing,
+        trigger="date",
+        run_date=datetime.datetime.now(),
+        args=(users_ids, message_text, img, bot)
+    )
+    """
     await bot.send_photo(
         chat_id=889497246,
         photo=BufferedInputFile(file=img.getvalue(), filename="filename"),
         caption=message.caption,
         parse_mode="HTML"
     )
+    """

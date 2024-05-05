@@ -3,6 +3,7 @@ import asyncio
 
 from pyrogram import Client
 from aiogram import Dispatcher, Bot
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.config import cfg
 from app.utils.logger import setup_logger
@@ -20,8 +21,11 @@ async def setup() -> tuple[Dispatcher, Bot, Client]:
     ai = ChatGptConnector(cfg.ai_api_key.get_secret_value(), cfg.ai_base_url)
     ai.connect()
 
+    scheduler = AsyncIOScheduler()
+    scheduler.start()
+
     dp, bot = await setup_bot(cfg, db, ai)
-    client = await setup_userbot(bot, ai, db)
+    client = await setup_userbot(bot, ai, db, scheduler)
     return dp, bot, client
 
 

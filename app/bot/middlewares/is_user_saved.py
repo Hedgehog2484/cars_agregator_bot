@@ -32,6 +32,7 @@ class IsUserSaved(BaseMiddleware, ABC):
 
             data["db"] = self.db
             data["ai"] = self.ai
+            data["event_user_id"] = user_id
             return await handler(event, data)
 
         except Exception as e:
