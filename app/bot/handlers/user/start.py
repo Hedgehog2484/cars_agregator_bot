@@ -30,7 +30,7 @@ async def menu_getter(dialog_manager: DialogManager, **kwargs) -> dict:
         message_text = f"Добро пожаловать, бла-бла.\nДней подписки осталось: <code>{days_left}</code>"
 
     return {
-        "subscribed": is_subscribed,
+        "subscribed": True,
         "is_trial_used": user.is_trial_used,
         "menu_message_text": message_text
     }
@@ -59,7 +59,7 @@ def is_show_buy_subscription(data: dict, widget: Whenable, dialog_manager: Dialo
 
 start_window = Window(
     Format("{menu_message_text}"),
-    WebApp(Const("Open webapp"), Const("https://0.0.0.0:8432"), "id_wa", when="subscribed"),
+    WebApp(Const("Open webapp"), Const("https://pepepu.ru"), "id_wa", when="subscribed"),
     Button(Const("Попробовать бесплатно"), id="start_trial", on_click=start_trial, when=is_show_trial),
     Button(Const("Купить подписку"), id="buy_subscription", on_click=buy_subscription, when=is_show_buy_subscription),
     state=states.user.MainMenu.MAIN_STATE,

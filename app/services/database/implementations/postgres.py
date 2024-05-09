@@ -22,7 +22,7 @@ class PostgresDAO(IDAO):
             await conn.run_sync(postgres_mapper_registry.metadata.create_all)
 
     async def add_user(self, user_id: int, is_admin: bool = False) -> None:
-        q = insert(users_table).values(tg_id=user_id, is_admin=is_admin)
+        q = insert(users_table).values(tg_id=user_id, is_admin=is_admin, subscription_ends=None, is_trial_used=False)
         await self._session.execute(q)
 
     async def add_subscription(self, user_id: int, days: int) -> None:
