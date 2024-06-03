@@ -9,6 +9,7 @@ from app.config import cfg
 from app.utils.logger import setup_logger
 from app.services.ai.implementations.chatgpt import ChatGptConnector
 from app.services.database.implementations.postgres import PostgresDAO
+from app.services.wallet.implementations.yoomoney import YoomoneyWallet
 
 from app.bot.setup import setup_bot, start_bot
 from app.userbot.setup import setup_userbot, start_userbot
@@ -21,6 +22,8 @@ async def setup() -> tuple[Dispatcher, Bot, Client]:
     ai = ChatGptConnector(cfg.ai_api_key.get_secret_value(), cfg.ai_base_url)
     ai.connect()
 
+    # yoomoney =
+
     scheduler = AsyncIOScheduler()
     scheduler.start()
 
@@ -31,7 +34,6 @@ async def setup() -> tuple[Dispatcher, Bot, Client]:
 
 async def main() -> None:
     dp, bot, client = await setup()
-
     loop = asyncio.get_event_loop()
     loop.create_task(start_bot(dp=dp, bot=bot))
     # loop.create_task(start_userbot(client))
