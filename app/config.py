@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     yoomoney_redirect_url: str
     yoomoney_client_id: SecretStr
     yoomoney_client_secret: SecretStr
+    yoomoney_auth_token: SecretStr
+    yoomoney_receiver_number: str
+    yoomoney_payment_type: str
 
     class Config:
         env_file = DOTENV_PATH

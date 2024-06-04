@@ -22,12 +22,20 @@ async def setup() -> tuple[Dispatcher, Bot, Client]:
     ai = ChatGptConnector(cfg.ai_api_key.get_secret_value(), cfg.ai_base_url)
     ai.connect()
 
-    # yoomoney =
+    yw = YoomoneyWallet(
+        client_id=cfg.yoomoney_client_id.get_secret_value(),
+        client_secret=cfg.yoomoney_client_secret.get_secret_value(),
+        base_api_url=cfg.yoomoney_base_url,
+        redirect_url=cfg.yoomoney_redirect_url,
+        auth_token=cfg.yoomoney_auth_token,
+        receiver_number=cfg.yoomoney_receiver_number,
+        payment_type=cfg.yoomoney_payment_type,
+    )
 
     scheduler = AsyncIOScheduler()
     scheduler.start()
 
-    dp, bot = await setup_bot(cfg, db, ai)
+    dp, bot = await setup_bot(cfg, db, ai)  # TODO: передавать сюда юмани.
     client = await setup_userbot(bot, ai, db, scheduler)
     return dp, bot, client
 
