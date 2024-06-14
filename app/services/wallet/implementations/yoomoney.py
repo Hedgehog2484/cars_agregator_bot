@@ -1,8 +1,11 @@
 import json
 import logging
+from datetime import datetime
+
 import aiohttp
 
 from app.services.wallet.wallet_api import IWallet
+from app.models.yoomoney_operation import YoomoneyOperation
 
 
 class YoomoneyWallet(IWallet):
@@ -84,3 +87,62 @@ class YoomoneyWallet(IWallet):
                 logging.error(await resp.text())
                 return
         return str(resp.url)
+
+    async def get_operations_history(
+            self,
+            operations_type: str | None,
+            label: str | None,
+            from_time: datetime | None,
+            till_time: datetime | None,
+            offset: int = 0,
+            records_count: int = 30,
+            **kwargs
+    ) -> list[YoomoneyOperation]:
+        url = f"{self._base_api_url}/api/operation-history/"
+
+        params = {}
+
+        if operations_type:
+            params["type"] = operations_type
+        if label:
+            params["label"] = label
+        if from_time:
+            params["from"] = from_time.strftime("%Y-%m-%dT%H:%M:%S")
+        if till_time:
+            params["till"] = from_time.strftime("%Y-%m-%dT%H:%M:%S")
+        params["start_record"] = offset
+        params["records"] = records_count
+
+        headers = {
+            "Authorization": f"Bearer {self._auth_token}",
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+
+        async with self._session.post(url, headers=headers, data=params) as resp:
+           data = json.loads(await resp.json())
+
+        if resp.status != 200:
+            match data["error"]:
+                case "illegal_param_type":
+                    logging.error("Неверное значение параметра type!")
+                case "illegal_param_start_record":
+                    logging.error("Неверное значение параметра start_record!")
+                case "illegal_param_records":
+                    logging.error("Неверное значение параметра records!")
+                case "illegal_param_label":
+                    logging.error("Неверное значение параметра label!")
+                case "illegal_param_from":
+                    logging.error("Неверное значение параметра from!")
+                case "illegal_param_till":
+                    logging.error("Неверное значение параметра till!")
+                case _:
+                    logging.error("Техническая ошибка, повторите вызов операции позднее...")
+            return []
+
+        operations = []
+        for operation in data.get("operations"):
+            if "label" not in operation:
+                operation["label"] = None
+            operations.append(YoomoneyOperation(**operation))
+
+        return operations
