@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, Integer, Boolean, String, Float, DateTime, ForeignKey
+from sqlalchemy import Table, Column, Integer, Boolean, String, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import registry
 
