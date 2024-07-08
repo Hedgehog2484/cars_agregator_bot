@@ -1,10 +1,14 @@
-from sqlalchemy import insert, select, update, delete
+import datetime
+
+from sqlalchemy import insert, select, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine, create_async_engine, async_sessionmaker
 
 from app.services.database.dao import IDAO
-from app.models import User
+from app.models import User, UserFilters
 from app.services.database.implementations.orm_models import (
-    postgres_mapper_registry, users_table
+    postgres_mapper_registry,
+    users_table,
+    filters_table
 )
 
 
@@ -25,14 +29,18 @@ class PostgresDAO(IDAO):
         q = insert(users_table).values(tg_id=user_id, is_admin=is_admin, subscription_ends=None, is_trial_used=False)
         await self._session.execute(q)
 
-    async def add_subscription(self, user_id: int, days: int) -> None:
-        pass
+    async def add_subscription(self, user_id: int, end_date: datetime.datetime) -> None:
+        q = update(users_table).where(users_table.c.id == user_id).values(subscription_ends=end_date)
+        await self._session.execute(q)
 
     async def reset_subscription(self, user_id: int) -> None:
-        pass
+        q = update(users_table).where(users_table.c.id == user_id).values(
+            subscription_ends=datetime.datetime.now() - datetime.timedelta(days=1)
+        )
+        await self._session.execute(q)
 
     async def update_user_trial_status(self, user_id: int) -> None:
-        pass
+        q = update(users_table).where(users_table.c.id == user_id).values(is_trial_used=True)
 
     async def get_user_by_id(self, user_id: int) -> User | None:
         q = select(users_table.c).where(users_table.c.tg_id == user_id)
@@ -48,23 +56,52 @@ class PostgresDAO(IDAO):
             users.append(User(*user))
         return users
 
-    async def add_user_filters(self, user_id: int) -> None:
-        pass
+    async def create_user_filters(self, user_id: int) -> None:
+        q = insert(filters_table).values(user_tg_id=user_id)
+        await self._session.execute(q)
+
+    async def update_user_filters(self, user_filters: UserFilters) -> None:
+        q = update(filters_table).where(filters_table.c.user_tg_id == user_filters.user_id).values(
+            model=user_filters.model,
+            price_min=user_filters.price_min,
+            price_max=user_filters.price_max,
+            mileage_min=user_filters.mileage_min,
+            mileage_max=user_filters.mileage_max,
+            city=user_filters.city
+        )
+        await self._session.execute(q)
+
+    async def get_filters_by_user_id(self, user_id: int) -> UserFilters | None:
+        q = select(filters_table.c).where(filters_table.c.user_tg_id == user_id)
+        res = await self._session.execute(q)
+        uf = res.fetchone()
+        return UserFilters(*uf) if uf else None
 
     async def get_users_ids_by_filters(
             self,
             model: str = None,
-            price_min: int = None,
-            price_max: int = None,
-            mileage_min: int = None,
-            mileage_max: int = None,
+            price: int = None,
+            mileage: int = None,
             city: list[str] = None
     ) -> list[int]:
-        pass
+        q = select(filters_table.c.user_tg_id).where(
+            and_(
+                filters_table.c.price_min <= price,
+                filters_table.c.price_max >= price,
+                filters_table.c.mileage_min <= mileage,
+                filters_table.c.mileage_mzx >= mileage,
+            )
+        ).filter(filters_table.partners.any(model))
+        res = await self._session.execute(q)
+        ids = []
+        for user_id in res.all():
+            ids.append(user_id[0])
+        return ids
 
     async def delete_user_filters(self, user_id: int) -> None:
         # TODO: don't forget to use this when subscription is ends.
-        pass
+        q = delete(filters_table).where(filters_table.c.user_tg_id == user_id)
+        await self._session.execute(q)
 
     async def commit(self) -> None:
         await self._session.commit()

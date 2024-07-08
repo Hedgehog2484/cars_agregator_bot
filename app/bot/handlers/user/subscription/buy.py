@@ -45,7 +45,7 @@ async def check_paid(c: CallbackQuery, button: Button, dialog_manager: DialogMan
     operations = []
     logging.info(operations)
     if operations:
-        await db.add_subscription(c.from_user.id, 30)
+        await db.add_subscription(c.from_user.id, datetime.datetime.now() + datetime.timedelta(days=30))
         await db.commit()
         await dialog_manager.switch_to(states.user.BuySubscription.PAYMENT_RECEIVED)
         return
