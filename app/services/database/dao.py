@@ -50,10 +50,11 @@ class IDAO(ABC):
     @abstractmethod
     async def get_users_ids_by_filters(
             self,
-            model: str = None,
-            price: int = None,
-            mileage: int = None,
-            city: list[str] = None
+            model: str | None = None,
+            price: int | None = None,
+            mileage: int | None = None,
+            manufacture_year: int | None = None,
+            city: list[str] | None = None
     ) -> list[int]:
         pass
 

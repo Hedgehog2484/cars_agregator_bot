@@ -67,6 +67,8 @@ class PostgresDAO(IDAO):
             price_max=user_filters.price_max,
             mileage_min=user_filters.mileage_min,
             mileage_max=user_filters.mileage_max,
+            manufacture_year_min=user_filters.manufacture_year_min,
+            manufacture_year_max=user_filters.manufacture_year_max,
             city=user_filters.city
         )
         await self._session.execute(q)
@@ -79,17 +81,20 @@ class PostgresDAO(IDAO):
 
     async def get_users_ids_by_filters(
             self,
-            model: str = None,
-            price: int = None,
-            mileage: int = None,
-            city: list[str] = None
+            model: str | None = None,
+            price: int | None = None,
+            mileage: int | None = None,
+            manufacture_year: int | None = None,
+            city: list[str] | None = None
     ) -> list[int]:
         q = select(filters_table.c.user_tg_id).where(
             and_(
                 filters_table.c.price_min <= price,
                 filters_table.c.price_max >= price,
                 filters_table.c.mileage_min <= mileage,
-                filters_table.c.mileage_mzx >= mileage,
+                filters_table.c.mileage_max >= mileage,
+                filters_table.c.manufacture_year_min <= manufacture_year,
+                filters_table.c.manufacture_year_max >= manufacture_year
             )
         ).filter(filters_table.partners.any(model))
         res = await self._session.execute(q)

@@ -14,15 +14,17 @@ users_table = Table(
     Column("is_trial_used", Boolean, nullable=False)
 )
 
-# TODO: прописать дефолтные значения.
+
 filters_table = Table(
     "users_filters",
     postgres_mapper_registry.metadata,
     Column("user_tg_id", Integer, ForeignKey("users.id"), nullable=False),
-    Column("model", ARRAY(String), nullable=True),
-    Column("price_min", Integer, nullable=True),
-    Column("price_max", Integer, nullable=True),
-    Column("mileage_min", Integer, nullable=True),
-    Column("mileage_max", Integer, nullable=True),
-    Column("city", ARRAY(Integer), nullable=True)
+    Column("model", ARRAY(String), nullable=False, default=[]),
+    Column("price_min", Integer, nullable=False, default=0),
+    Column("price_max", Integer, nullable=False, default=100000000),
+    Column("mileage_min", Integer, nullable=False, default=0),
+    Column("mileage_max", Integer, nullable=False, default=10000000),
+    Column("manufacture_year_min", Integer, nullable=False, default=1900),
+    Column("manufacture_year_max", Integer, nullable=False, default=2024),
+    Column("city", ARRAY(Integer), nullable=False, default=[])
 )
