@@ -6,6 +6,7 @@ from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.common import Whenable
 from aiogram_dialog.widgets.kbd import WebApp, Button, Start
 from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.input import MessageInput
 
 from app.bot import states
 from app.services.database.implementations.postgres import PostgresDAO
@@ -58,12 +59,22 @@ def is_show_buy_subscription(data: dict, widget: Whenable, dialog_manager: Dialo
     return not data["subscribed"]
 
 
+async def webapp_input(
+        message: Message,
+        widget: MessageInput,
+        dialog_manager: DialogManager
+):
+    # TODO: сделать сохранение настроек из webapp.
+    pass
+
+
 start_window = Window(
     Format("{menu_message_text}"),
     WebApp(Const("Open webapp"), Const("https://pepepu.ru"), "id_wa", when="subscribed"),
     Button(Const("Попробовать бесплатно"), id="start_trial", on_click=start_trial, when=is_show_trial),
     # Button(Const("Купить подписку"), id="buy_subscription", on_click=buy_subscription, when=is_show_buy_subscription),
     Start(text=Const("Купить подписку"), id="buy_subscription", state=states.user.BuySubscription.PAYMENT, when=is_show_buy_subscription),
+    MessageInput(webapp_input),
     state=states.user.MainMenu.MAIN_STATE,
     getter=menu_getter
 )
