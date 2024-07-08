@@ -27,7 +27,7 @@ async def setup() -> tuple[Dispatcher, Bot, Client]:
         client_secret=cfg.yoomoney_client_secret.get_secret_value(),
         base_api_url=cfg.yoomoney_base_url,
         redirect_url=cfg.yoomoney_redirect_url,
-        auth_token=cfg.yoomoney_auth_token,
+        auth_token=cfg.yoomoney_auth_token.get_secret_value(),
         receiver_number=cfg.yoomoney_receiver_number,
         payment_type=cfg.yoomoney_payment_type,
     )
@@ -35,7 +35,7 @@ async def setup() -> tuple[Dispatcher, Bot, Client]:
     scheduler = AsyncIOScheduler()
     scheduler.start()
 
-    dp, bot = await setup_bot(cfg, db, ai)  # TODO: передавать сюда юмани.
+    dp, bot = await setup_bot(cfg, scheduler, db, ai, yw)
     client = await setup_userbot(bot, ai, db, scheduler)
     return dp, bot, client
 

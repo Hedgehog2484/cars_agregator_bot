@@ -5,7 +5,7 @@ from datetime import datetime
 import aiohttp
 
 from app.services.wallet.wallet_api import IWallet
-from app.models.yoomoney_operation import YoomoneyOperation
+from app.models.operation import YoomoneyOperation
 
 
 class YoomoneyWallet(IWallet):
@@ -70,19 +70,24 @@ class YoomoneyWallet(IWallet):
     async def close_session(self) -> None:
         await self._session.close()
 
-    async def create_payment_form(self, sum: float, user_id: int, success_url: str | None) -> str | None:
+    async def create_payment_form(self, amount: float, user_id: int, success_url: str | None) -> str | None:
         url = f"{self._base_api_url}/quickpay/confirm"
 
         params = {
             "receiver": self._receiver_number,
             "quickpay-form": "button",
             "paymentType": self._payment_type,
-            "sum": str(sum),
-            "label": "",
+            "sum": str(amount),
+            "label": str(user_id),
             "successURL": success_url,
         }
 
-        async with self._session.post(url, data=params) as resp:
+        headers = {
+            "Authorization": f"Bearer {self._auth_token}",
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+
+        async with self._session.post(url, headers=headers, data=params) as resp:
             if resp.status != 200:
                 logging.error(await resp.text())
                 return
@@ -90,15 +95,15 @@ class YoomoneyWallet(IWallet):
 
     async def get_operations_history(
             self,
-            operations_type: str | None,
-            label: str | None,
-            from_time: datetime | None,
-            till_time: datetime | None,
-            offset: int = 0,
-            records_count: int = 30,
+            operations_type: str | None = None,
+            label: str | None = None,
+            from_time: datetime | None = None,
+            till_time: datetime | None = None,
+            offset: int | None = 0,
+            records_count: int | None = 30,
             **kwargs
     ) -> list[YoomoneyOperation]:
-        url = f"{self._base_api_url}/api/operation-history/"
+        url = f"{self._base_api_url}/api/operation-history"
 
         params = {}
 
@@ -115,14 +120,15 @@ class YoomoneyWallet(IWallet):
 
         headers = {
             "Authorization": f"Bearer {self._auth_token}",
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/x-www-form-urlencoded"
         }
 
         async with self._session.post(url, headers=headers, data=params) as resp:
-           data = json.loads(await resp.json())
+            data = await resp.json()
+            logging.debug(f"operation-history data: {data}")
 
-        if resp.status != 200:
-            match data["error"]:
+        if error := data.get("error"):
+            match error:
                 case "illegal_param_type":
                     logging.error("Неверное значение параметра type!")
                 case "illegal_param_start_record":
@@ -143,6 +149,19 @@ class YoomoneyWallet(IWallet):
         for operation in data.get("operations"):
             if "label" not in operation:
                 operation["label"] = None
-            operations.append(YoomoneyOperation(**operation))
+            # TODO: разобраться.
+            # operations.append(YoomoneyOperation(**operation))
+            operations.append(
+                YoomoneyOperation(
+                    operation_id=operation["operation_id"],
+                    status=operation["status"],
+                    datetime=datetime.strptime(str(operation["datetime"]).replace("T", " ").replace("Z", ""), '%Y-%m-%d %H:%M:%S'), title=operation["title"],
+                    pattern_id=None,
+                    direction=operation["direction"],
+                    amount=operation["amount"],
+                    label=operation["label"],
+                    type=operation["type"],
+                )
+            )
 
         return operations

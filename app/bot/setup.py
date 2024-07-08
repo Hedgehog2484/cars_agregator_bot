@@ -1,5 +1,6 @@
 import logging
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pydantic_settings import BaseSettings
 from aiogram import Bot, Dispatcher
 from aiogram_dialog import setup_dialogs
@@ -10,14 +11,15 @@ from app.bot.middlewares import setup_middlewares
 
 from app.services.database.dao import IDAO
 from app.services.ai.ai_connector import IAiConnector
+from app.services.wallet.wallet_api import IWallet
 
 
-async def setup_bot(cfg: BaseSettings, db: IDAO, ai: IAiConnector) -> tuple[Dispatcher, Bot]:
+async def setup_bot(cfg: BaseSettings, scheduler: AsyncIOScheduler, db: IDAO, ai: IAiConnector, wallet: IWallet) -> tuple[Dispatcher, Bot]:
     dp = Dispatcher(storage=MemoryStorage())
     bot = Bot(cfg.bot_token.get_secret_value())
 
     setup_handlers(dp)
-    setup_middlewares(dp, db, ai)
+    setup_middlewares(cfg, scheduler, dp, db, ai, wallet)
     setup_dialogs(dp)
     return dp, bot
 
