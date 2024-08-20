@@ -1,3 +1,4 @@
+import logging
 import datetime
 
 from sqlalchemy import insert, select, update, delete, and_
@@ -40,7 +41,7 @@ class PostgresDAO(IDAO):
         await self._session.execute(q)
 
     async def update_user_trial_status(self, user_id: int) -> None:
-        q = update(users_table).where(users_table.c.id == user_id).values(is_trial_used=True)
+        q = update(users_table).where(users_table.c.tg_id == user_id).values(is_trial_used=True)
 
     async def get_user_by_id(self, user_id: int) -> User | None:
         q = select(users_table.c).where(users_table.c.tg_id == user_id)

@@ -8,7 +8,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pyrogram.filters import channel_filter, caption_filter, \
     text_filter, photo_filter
 
-from app.utils.posts_processing import processing
+from app.utils.process_posts import processing
 from app.services.ai.ai_connector import IAiConnector
 from app.services.database.dao import IDAO
 

@@ -13,9 +13,10 @@ from app.services.wallet.implementations.yoomoney import YoomoneyWallet
 
 from app.bot.setup import setup_bot, start_bot
 from app.userbot.setup import setup_userbot, start_userbot
+from app.web import start_webapp
 
 
-async def setup() -> tuple[Dispatcher, Bot, Client]:
+async def setup() -> tuple[Dispatcher, Bot, Client, PostgresDAO]:
     setup_logger(cfg.logger_level)
     db = PostgresDAO(cfg.database_url.get_secret_value())
     await db.create_db()
@@ -37,13 +38,15 @@ async def setup() -> tuple[Dispatcher, Bot, Client]:
 
     dp, bot = await setup_bot(cfg, scheduler, db, ai, yw)
     client = await setup_userbot(bot, ai, db, scheduler)
-    return dp, bot, client
+    return dp, bot, client, db
 
 
 async def main() -> None:
-    dp, bot, client = await setup()
+    dp, bot, client, db = await setup()
     loop = asyncio.get_event_loop()
-    loop.create_task(start_bot(dp=dp, bot=bot))
-    # loop.create_task(start_userbot(client))
+    await start_bot(dp=dp, bot=bot)
+    # loop.create_task(start_bot(dp=dp, bot=bot))
+    # loop.create_task(start_webapp(db=db))
+    loop.create_task(start_userbot(client))
     await start_userbot(client)
     loop.run_forever()

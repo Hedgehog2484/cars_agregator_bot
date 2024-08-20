@@ -18,7 +18,7 @@ users_table = Table(
 filters_table = Table(
     "users_filters",
     postgres_mapper_registry.metadata,
-    Column("user_tg_id", Integer, ForeignKey("users.id"), nullable=False),
+    Column("user_tg_id", Integer, ForeignKey("users.tg_id"), nullable=False),
     Column("model", ARRAY(String), nullable=False, default=[]),
     Column("price_min", Integer, nullable=False, default=0),
     Column("price_max", Integer, nullable=False, default=100000000),

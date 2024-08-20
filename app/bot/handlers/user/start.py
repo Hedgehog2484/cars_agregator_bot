@@ -1,4 +1,6 @@
-from datetime import datetime
+import logging
+
+from datetime import datetime, timedelta
 from aiogram import Dispatcher, Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
@@ -6,7 +8,6 @@ from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.common import Whenable
 from aiogram_dialog.widgets.kbd import WebApp, Button, Start
 from aiogram_dialog.widgets.text import Const, Format
-from aiogram_dialog.widgets.input import MessageInput
 
 from app.bot import states
 from app.services.database.implementations.postgres import PostgresDAO
@@ -23,8 +24,8 @@ async def send_start_message(message: Message, dialog_manager: DialogManager):
 async def menu_getter(dialog_manager: DialogManager, **kwargs) -> dict:
     db: PostgresDAO = dialog_manager.middleware_data["db"]
     user = await db.get_user_by_id(dialog_manager.middleware_data["event_user_id"])
-    # is_subscribed = False
-    is_subscribed = True
+    is_subscribed = False
+    # is_subscribed = True
     message_text = "Добро пожаловать! На данный момент у вас нет подписки, но вы можете попробовать пробный период"
     if user.subscription_ends is not None:
         is_subscribed = True
@@ -42,7 +43,7 @@ async def start_trial(c: CallbackQuery, button: Button, dialog_manager: DialogMa
     db: PostgresDAO = dialog_manager.middleware_data["db"]
     user_id: int = c.from_user.id
     await db.update_user_trial_status(user_id)
-    await db.add_subscription(user_id, 3)
+    await db.add_subscription(user_id, datetime.today() + timedelta(days=3))
     await db.commit()
     await dialog_manager.switch_to(states.user.MainMenu.MAIN_STATE)
 
@@ -59,22 +60,12 @@ def is_show_buy_subscription(data: dict, widget: Whenable, dialog_manager: Dialo
     return not data["subscribed"]
 
 
-async def webapp_input(
-        message: Message,
-        widget: MessageInput,
-        dialog_manager: DialogManager
-):
-    # TODO: сделать сохранение настроек из webapp.
-    pass
-
-
 start_window = Window(
     Format("{menu_message_text}"),
     WebApp(Const("Open webapp"), Const("https://pepepu.ru"), "id_wa", when="subscribed"),
-    Button(Const("Попробовать бесплатно"), id="start_trial", on_click=start_trial, when=is_show_trial),
+    Button(Const("Попробовать бесплатно"), id="start_trial_btn", on_click=start_trial, when=is_show_trial),
     # Button(Const("Купить подписку"), id="buy_subscription", on_click=buy_subscription, when=is_show_buy_subscription),
     Start(text=Const("Купить подписку"), id="buy_subscription", state=states.user.BuySubscription.PAYMENT, when=is_show_buy_subscription),
-    MessageInput(webapp_input),
     state=states.user.MainMenu.MAIN_STATE,
     getter=menu_getter
 )
