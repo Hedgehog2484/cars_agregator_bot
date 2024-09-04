@@ -26,11 +26,28 @@ async def menu_getter(dialog_manager: DialogManager, **kwargs) -> dict:
     user = await db.get_user_by_id(dialog_manager.middleware_data["event_user_id"])
     is_subscribed = False
     # is_subscribed = True
-    message_text = "Добро пожаловать! На данный момент у вас нет подписки, но вы можете попробовать пробный период"
+    message_text = """
+Добро пожаловать в наш сервис по поиску автомобилей по низу рынка!
+Предлагаем вам попробовать пробную подписку — это отличный способ ознакомиться с нашими возможностями и оценить, как мы можем помочь вам.
+Также вы можете приобрести подписку в любой момент по цене 299 рублей.
+Если у вас возникнут вопросы или потребуется помощь, наша команда всегда готова вам помочь, аккаунт поддержки можете найти в описании бота.
+Получите доступ к автомобилям, которых нет на досках объявлений уже сегодня!
+С уважением,
+команда ВсеТачки.ру
+"""
     if user.subscription_ends is not None:
         is_subscribed = True
         days_left = (user.subscription_ends - datetime.now()).days
-        message_text = f"Добро пожаловать, бла-бла.\nДней подписки осталось: <code>{days_left}</code>"
+        if days_left > 0:
+            message_text = f"""
+Доброго времени суток!
+Дней подписки осталось: <code>{days_left}</code>
+"""
+        else:
+            message_text = f"""
+К сожалению, срок действия вашей подписки истёк.
+Чтобы продолжить пользоваться сервисом купите подписку, нажав соответствующую кнопку ниже:
+"""
 
     return {
         "subscribed": is_subscribed,
@@ -73,7 +90,15 @@ start_window = Window(
 
 start_dialog = Dialog(
     start_window
-)
+)   70 def is_show_buy_subscription(data: dict, widget: Whenable, dialog_manager: DialogManager) -> bool:
+   71     return not data["subscribed"]
+   72 
+   73 
+   74 start_window = Window(
+   75     Format("{menu_message_text}"),
+   76     WebApp(Const("Open webapp"), Const("https://pepepu.ru"), "id_wa", when="subscribed"),
+   77     Button(Const("Попробовать бесплатно"), id="start_trial_btn", on_click=start_trial, when=is_show_trial),
+
 
 
 def setup_start(dp: Dispatcher) -> None:
