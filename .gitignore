@@ -1,3 +1,9 @@
 .idea/
 .env
 *.session
+*.session-journal
+
+# Python.
+__pycache__/
+*.pyc
+*$py.clas
