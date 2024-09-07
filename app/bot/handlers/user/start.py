@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.common import Whenable
-from aiogram_dialog.widgets.kbd import WebApp, Button, Start
+from aiogram_dialog.widgets.kbd import WebApp, Button, Start, Back
 from aiogram_dialog.widgets.text import Const, Format
 
 from app.bot import states
@@ -58,15 +58,11 @@ async def menu_getter(dialog_manager: DialogManager, **kwargs) -> dict:
 
 async def start_trial(c: CallbackQuery, button: Button, dialog_manager: DialogManager) -> None:
     db: PostgresDAO = dialog_manager.middleware_data["db"]
-    user_id: int = c.from_user.id
+    user_id = int(c.from_user.id)
     await db.update_user_trial_status(user_id)
     await db.add_subscription(user_id, date.today() + timedelta(days=3))
     await db.commit()
-    await dialog_manager.switch_to(states.user.MainMenu.MAIN_STATE)
-
-
-async def buy_subscription(c: CallbackQuery, button: Button, dialog_manager: DialogManager) -> None:
-    pass
+    await dialog_manager.next()
 
 
 def is_show_trial(data: dict, widget: Whenable, dialog_manager: DialogManager) -> bool:
@@ -88,8 +84,16 @@ start_window = Window(
 )
 
 
+trial_activated_window = Window(
+    Const("Пробная подписка активирована! Не забудьте настроить фильтры.\nПо всем вопросам обращайтесь к администратору (ссылка в описании бота)"),
+    Back(Const("Вернуться в меню")),
+    state=states.user.MainMenu.TRIAL_STARTED
+)
+
+
 start_dialog = Dialog(
-    start_window
+    start_window,
+    trial_activated_window
 )
 
 
