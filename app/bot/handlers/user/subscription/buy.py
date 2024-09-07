@@ -71,7 +71,7 @@ send_payment_url_window = Window(
     ),
     Url(Const("💰 Оплатить"), Format("{payment_url}")),
     Button(Const("✅ Оплатил"), id="paid_btn", on_click=check_paid),
-    Button(),  # TODO: кнопка назад.
+    # Button(),  # TODO: кнопка назад.
     state=states.user.BuySubscription.PAYMENT,
     getter=payment_menu_getter,
     parse_mode="HTML"
