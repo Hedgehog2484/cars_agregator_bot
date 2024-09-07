@@ -31,11 +31,11 @@ class PostgresDAO(IDAO):
         await self._session.execute(q)
 
     async def add_subscription(self, user_id: int, end_date: datetime.date) -> None:
-        q = update(users_table).where(users_table.c.id == user_id).values(subscription_ends=end_date)
+        q = update(users_table).where(users_table.c.tg_id == user_id).values(subscription_ends=end_date)
         await self._session.execute(q)
 
     async def reset_subscription(self, user_id: int) -> None:
-        q = update(users_table).where(users_table.c.id == user_id).values(
+        q = update(users_table).where(users_table.c.tg_id == user_id).values(
             subscription_ends=datetime.date.today() - datetime.timedelta(days=1)
         )
         await self._session.execute(q)
@@ -51,7 +51,7 @@ class PostgresDAO(IDAO):
         return User(*u) if u else None
 
     async def get_users_ids_by_subscription_end_date(self, subscription_end_date: datetime.date) -> list[int]:
-        q = select(users_table.c.id).where(users_table.c.subscription_ends == subscription_end_date)
+        q = select(users_table.c.tg_id).where(users_table.c.subscription_ends == subscription_end_date)
         res = await self._session.execute(q)
         ids = []
         for user_id in res.all():
