@@ -1,6 +1,6 @@
 import logging
 
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from aiogram import Dispatcher, Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
@@ -37,7 +37,7 @@ async def menu_getter(dialog_manager: DialogManager, **kwargs) -> dict:
 """
     if user.subscription_ends is not None:
         is_subscribed = True
-        days_left = (user.subscription_ends - datetime.now()).days
+        days_left = (user.subscription_ends - date.today()).days
         if days_left > 0:
             message_text = f"""
 Доброго времени суток!
@@ -60,7 +60,7 @@ async def start_trial(c: CallbackQuery, button: Button, dialog_manager: DialogMa
     db: PostgresDAO = dialog_manager.middleware_data["db"]
     user_id: int = c.from_user.id
     await db.update_user_trial_status(user_id)
-    await db.add_subscription(user_id, datetime.today() + timedelta(days=3))
+    await db.add_subscription(user_id, date.today() + timedelta(days=3))
     await db.commit()
     await dialog_manager.switch_to(states.user.MainMenu.MAIN_STATE)
 
@@ -90,15 +90,7 @@ start_window = Window(
 
 start_dialog = Dialog(
     start_window
-)   70 def is_show_buy_subscription(data: dict, widget: Whenable, dialog_manager: DialogManager) -> bool:
-   71     return not data["subscribed"]
-   72 
-   73 
-   74 start_window = Window(
-   75     Format("{menu_message_text}"),
-   76     WebApp(Const("Open webapp"), Const("https://pepepu.ru"), "id_wa", when="subscribed"),
-   77     Button(Const("Попробовать бесплатно"), id="start_trial_btn", on_click=start_trial, when=is_show_trial),
-
+)
 
 
 def setup_start(dp: Dispatcher) -> None:

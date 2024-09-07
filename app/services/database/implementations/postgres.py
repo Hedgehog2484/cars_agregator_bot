@@ -30,13 +30,13 @@ class PostgresDAO(IDAO):
         q = insert(users_table).values(tg_id=user_id, is_admin=is_admin, subscription_ends=None, is_trial_used=False)
         await self._session.execute(q)
 
-    async def add_subscription(self, user_id: int, end_date: datetime.datetime) -> None:
+    async def add_subscription(self, user_id: int, end_date: datetime.date) -> None:
         q = update(users_table).where(users_table.c.id == user_id).values(subscription_ends=end_date)
         await self._session.execute(q)
 
     async def reset_subscription(self, user_id: int) -> None:
         q = update(users_table).where(users_table.c.id == user_id).values(
-            subscription_ends=datetime.datetime.now() - datetime.timedelta(days=1)
+            subscription_ends=datetime.date.today() - datetime.timedelta(days=1)
         )
         await self._session.execute(q)
 
@@ -48,6 +48,14 @@ class PostgresDAO(IDAO):
         res = await self._session.execute(q)
         u = res.fetchone()
         return User(*u) if u else None
+
+    async def get_users_ids_by_subscription_end_date(self, subscription_end_date: datetime.date) -> list[int]:
+        q = select(users_table.c.id).where(users_table.c.subscription_ends == subscription_end_date)
+        res = await self._session.execute(q)
+        ids = []
+        for user_id in res.all():
+            ids.append(user_id[0])
+        return ids
 
     async def get_all_users(self) -> list[User]:
         q = select(users_table.c)
