@@ -73,11 +73,14 @@ def is_show_buy_subscription(data: dict, widget: Whenable, dialog_manager: Dialo
     return not data["subscribed"]
 
 
+def is_subscribed(data: dict, widget: Whenable, dialog_manager: DialogManager) -> bool:
+    return data["subscribed"]
+
+
 start_window = Window(
     Format("{menu_message_text}"),
-    WebApp(Const("Open webapp"), Const("https://pepepu.ru"), "id_wa", when="subscribed"),
+    WebApp(Const("Open webapp"), Const("https://pepepu.ru"), id="webapp_btn", when=is_subscribed),
     Button(Const("Попробовать бесплатно"), id="start_trial_btn", on_click=start_trial, when=is_show_trial),
-    # Button(Const("Купить подписку"), id="buy_subscription", on_click=buy_subscription, when=is_show_buy_subscription),
     Start(text=Const("Купить подписку"), id="buy_subscription", state=states.user.BuySubscription.PAYMENT, when=is_show_buy_subscription),
     state=states.user.MainMenu.MAIN_STATE,
     getter=menu_getter
@@ -86,7 +89,7 @@ start_window = Window(
 
 trial_activated_window = Window(
     Const("Пробная подписка активирована! Не забудьте настроить фильтры.\nПо всем вопросам обращайтесь к администратору (ссылка в описании бота)"),
-    Back(Const("Вернуться в меню")),
+    Back(Const("Вернуться в меню"), id="back_btn"),
     state=states.user.MainMenu.TRIAL_STARTED
 )
 
