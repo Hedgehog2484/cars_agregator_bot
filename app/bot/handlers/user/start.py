@@ -79,7 +79,7 @@ def is_subscribed(data: dict, widget: Whenable, dialog_manager: DialogManager) -
 
 start_window = Window(
     Format("{menu_message_text}"),
-    WebApp(Const("Open webapp"), Const("https://pepepu.ru"), id="webapp_btn", when=is_subscribed),
+    WebApp(text=Const("Open webapp"), url=Const("https://pepepu.ru"), id="webapp_btn", when=is_subscribed),
     Button(Const("Попробовать бесплатно"), id="start_trial_btn", on_click=start_trial, when=is_show_trial),
     Start(text=Const("Купить подписку"), id="buy_subscription", state=states.user.BuySubscription.PAYMENT, when=is_show_buy_subscription),
     state=states.user.MainMenu.MAIN_STATE,
