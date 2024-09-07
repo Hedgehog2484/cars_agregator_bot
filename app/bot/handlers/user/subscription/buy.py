@@ -34,17 +34,18 @@ async def check_paid(c: CallbackQuery, button: Button, dialog_manager: DialogMan
     wallet: IWallet = dialog_manager.middleware_data["wallet"]
     db: IDAO = dialog_manager.middleware_data["db"]
 
+    user_id = c.from_user.id
     operations: list[YoomoneyOperation] = await wallet.get_operations_history(
         operations_type="deposition",
-        label=str(c.from_user.id),
+        label=str(user_id),
         records_count=1,
-        # from_time=datetime.datetime.now() - datetime.timedelta(days=1),
-        # till_time=datetime.datetime.now(),
+        from_time=datetime.datetime.now() - datetime.timedelta(days=1),
+        till_time=datetime.datetime.now(),
+        offset=0
     )
-    operations = []
-    logging.info(operations)
     if operations:
-        await db.add_subscription(c.from_user.id, datetime.date.today() + datetime.timedelta(days=30))
+        await db.add_subscription(user_id, datetime.date.today() + datetime.timedelta(days=30))
+        await db.create_user_filters(user_id)
         await db.commit()
         await dialog_manager.switch_to(states.user.BuySubscription.PAYMENT_RECEIVED)
         return

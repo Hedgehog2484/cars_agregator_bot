@@ -61,6 +61,7 @@ async def start_trial(c: CallbackQuery, button: Button, dialog_manager: DialogMa
     user_id = int(c.from_user.id)
     await db.update_user_trial_status(user_id)
     await db.add_subscription(user_id, date.today() + timedelta(days=3))
+    await db.create_user_filters(user_id)
     await db.commit()
     await dialog_manager.next()
 
