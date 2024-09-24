@@ -3,6 +3,7 @@ from functools import partial
 from aiogram import Bot
 from pyrogram import Client
 from pyrogram.types import Message
+from pyrogram.enums import ChatType
 from pyrogram.handlers import MessageHandler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pyrogram.filters import channel_filter, caption_filter, \
@@ -21,9 +22,8 @@ async def new_post_handler(
         db: IDAO,
         scheduler: AsyncIOScheduler
 ) -> None:
-    if not message.caption and not message.text:
+    if message.chat.type != ChatType.CHANNEL and not message.caption and len(message.caption_entities) < 4 and not message.text:
         return
-
     await processing(message, bot, ai, db, scheduler)
 
 

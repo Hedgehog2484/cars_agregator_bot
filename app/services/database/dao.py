@@ -16,7 +16,7 @@ class IDAO(ABC):
         pass
 
     @abstractmethod
-    async def add_subscription(self, user_id: int, to_date: datetime.datetime) -> None:
+    async def add_subscription(self, user_id: int, to_date: datetime.date) -> None:
         pass
 
     @abstractmethod
@@ -29,6 +29,10 @@ class IDAO(ABC):
 
     @abstractmethod
     async def get_user_by_id(self, user_id: int) -> User | None:
+        pass
+
+    @abstractmethod
+    async def get_users_ids_by_subscription_end_date(self, subscription_end_date: datetime.date) -> list[int]:
         pass
 
     @abstractmethod

@@ -4,9 +4,11 @@ import asyncio
 from pyrogram import Client
 from aiogram import Dispatcher, Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from app.config import cfg
 from app.utils.logger import setup_logger
+from app.utils.end_subscriptions import check_end_subscriptions
 from app.services.ai.implementations.chatgpt import ChatGptConnector
 from app.services.database.implementations.postgres import PostgresDAO
 from app.services.wallet.implementations.yoomoney import YoomoneyWallet
@@ -37,6 +39,13 @@ async def setup() -> tuple[Dispatcher, Bot, Client, PostgresDAO]:
     scheduler.start()
 
     dp, bot = await setup_bot(cfg, scheduler, db, ai, yw)
+    scheduler.add_job(
+        func=check_end_subscriptions,
+        trigger="cron",
+        hour=1,
+        args=(bot, db)
+    )
+
     client = await setup_userbot(bot, ai, db, scheduler)
     return dp, bot, client, db
 
@@ -44,9 +53,10 @@ async def setup() -> tuple[Dispatcher, Bot, Client, PostgresDAO]:
 async def main() -> None:
     dp, bot, client, db = await setup()
     loop = asyncio.get_event_loop()
-    await start_bot(dp=dp, bot=bot)
     # loop.create_task(start_bot(dp=dp, bot=bot))
     # loop.create_task(start_webapp(db=db))
     loop.create_task(start_userbot(client))
-    await start_userbot(client)
-    loop.run_forever()
+    # await start_userbot(client)
+    # loop.run_forever()
+    # loop.run_until_complete(start_userbot(client))
+    await start_bot(dp=dp, bot=bot)
