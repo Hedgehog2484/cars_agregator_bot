@@ -49,15 +49,22 @@ def get_filters_values_from_text(text: str) -> dict:
     return res
 
 
-async def posts_mailing(users_ids: list, message_text: str, photo: _io.BytesIO, bot: Bot) -> None:
-    for user_id in users_ids:
+async def posts_mailing(users_ids: list, message_text: str, media: list[BufferedInputFile], bot: Bot) -> None:
+    media[0].caption = message_text
+    for user_id in [889497246]:
         try:
+            await bot.send_media_group(
+                chat_id=user_id,
+                media=media
+            )
+            """
             await bot.send_photo(
-                chat_id=889497246,
+                chat_id=user_id,
                 photo=BufferedInputFile(file=photo.getvalue(), filename="filename"),
                 caption=message_text,
                 parse_mode="HTML"
             )
+            """
         except:
             pass
 
@@ -95,7 +102,16 @@ async def processing(
 
 Вот текст:\n
 """
-    img = await message.download(in_memory=True)  # LMAO it returns _io.BytesIO, not str.
+    # img = await message.download(in_memory=True)  # LMAO it returns _io.BytesIO, not str.
+    media = await message.get_media_group()
+    downloaded_media_list = []
+    for img in media:
+        downloaded_media_list.append(
+            BufferedInputFile(
+                file=(await img.download(in_memory=True)).getvalue(),  # Remember! download returns _io.BytesIO not str.
+                filename="img"
+            )
+        )
     message_text = ai.convert_text(prompt=prompt, original_text=message.caption)
     if message_text == "РЕКЛАМА":
         return
@@ -106,7 +122,7 @@ async def processing(
         func=posts_mailing,
         trigger="date",
         run_date=datetime.datetime.now(),
-        args=(users_ids, message_text, img, bot)
+        args=(users_ids, message_text, downloaded_media_list, bot)
     )
     """
     await bot.send_photo(
