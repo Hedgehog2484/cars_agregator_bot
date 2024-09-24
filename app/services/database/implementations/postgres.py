@@ -106,7 +106,7 @@ class PostgresDAO(IDAO):
                 filters_table.c.manufacture_year_min <= manufacture_year,
                 filters_table.c.manufacture_year_max >= manufacture_year
             )
-        ).filter(filters_table.partners.any(model))
+        ).filter(filters_table.model.contains(model))
         res = await self._session.execute(q)
         ids = []
         for user_id in res.all():
