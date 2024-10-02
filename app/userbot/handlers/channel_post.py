@@ -1,3 +1,4 @@
+import logging
 from functools import partial
 
 from aiogram import Bot
@@ -14,6 +15,9 @@ from app.services.ai.ai_connector import IAiConnector
 from app.services.database.dao import IDAO
 
 
+messages = []
+
+
 async def new_post_handler(
         client: Client,
         message: Message,
@@ -22,8 +26,10 @@ async def new_post_handler(
         db: IDAO,
         scheduler: AsyncIOScheduler
 ) -> None:
-    if message.chat.type != ChatType.CHANNEL and not message.caption and len(message.caption_entities) < 4 and not message.text:
+    if message.chat.type != ChatType.CHANNEL or not message.caption:
         return
+    logging.info("post getted")
+    # messages.append(message.media_group_id)
     await processing(message, bot, ai, db, scheduler)
 
 

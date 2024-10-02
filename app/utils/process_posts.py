@@ -1,9 +1,10 @@
 import re
 import _io
+import logging
 import datetime
 
 from aiogram import Bot
-from aiogram.types import BufferedInputFile
+from aiogram.types import BufferedInputFile, InputMediaPhoto
 from pyrogram.types import Message
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -15,7 +16,7 @@ def get_filters_values_from_text(text: str) -> dict:
     lines = text.splitlines()
 
     res = {
-        "model": re.findall(r"<b>(.*?)</b>", lines[0])[0],  # In this case model = vendor.
+        "model": re.findall(r"<b>(.*?)</b>", lines[0])[0].lower(),  # In this case model = vendor.
         "manufacture_year": None,
         "mileage": None,
         "price": None,
@@ -49,24 +50,18 @@ def get_filters_values_from_text(text: str) -> dict:
     return res
 
 
-async def posts_mailing(users_ids: list, message_text: str, media: list[BufferedInputFile], bot: Bot) -> None:
+async def posts_mailing(users_ids: list, message_text: str, media: list[InputMediaPhoto], bot: Bot) -> None:
+    logging.debug(f"ID пользователей для рассылки: {users_ids}")
     media[0].caption = message_text
-    for user_id in [889497246]:
+    media[0].parse_mode = "HTML"
+    for user_id in users_ids:
         try:
             await bot.send_media_group(
                 chat_id=user_id,
                 media=media
             )
-            """
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=BufferedInputFile(file=photo.getvalue(), filename="filename"),
-                caption=message_text,
-                parse_mode="HTML"
-            )
-            """
-        except:
-            pass
+        except Exception as e:
+            logging.error(e)
 
 
 async def processing(
@@ -104,31 +99,33 @@ async def processing(
 """
     # img = await message.download(in_memory=True)  # LMAO it returns _io.BytesIO, not str.
     media = await message.get_media_group()
+    if len(media) < 3:
+        logging.info("Media in message < 3")
+        return
     downloaded_media_list = []
+    i = 0
     for img in media:
+        i += 1
+        b = BufferedInputFile(
+            file=(await img.download(in_memory=True)).getvalue(), # Remember! download returns _io.BytesIO not str.
+            filename="img" + str(i)
+        )
         downloaded_media_list.append(
-            BufferedInputFile(
-                file=(await img.download(in_memory=True)).getvalue(),  # Remember! download returns _io.BytesIO not str.
-                filename="img"
-            )
+            InputMediaPhoto(media=b)
         )
     message_text = ai.convert_text(prompt=prompt, original_text=message.caption)
     if message_text == "РЕКЛАМА":
+        logging.debug("реклама")
         return
 
     # TODO: выгружать пользователей частями (и скорее всего прям в ф-ии posts_mailing).
     users_ids = await db.get_users_ids_by_filters(**get_filters_values_from_text(message_text))
+    await posts_mailing(users_ids, message_text, downloaded_media_list, bot)
+    """
     scheduler.add_job(
         func=posts_mailing,
         trigger="date",
         run_date=datetime.datetime.now(),
         args=(users_ids, message_text, downloaded_media_list, bot)
-    )
-    """
-    await bot.send_photo(
-        chat_id=889497246,
-        photo=BufferedInputFile(file=img.getvalue(), filename="filename"),
-        caption=message.caption,
-        parse_mode="HTML"
     )
     """

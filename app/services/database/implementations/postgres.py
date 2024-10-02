@@ -1,7 +1,7 @@
 import logging
 import datetime
 
-from sqlalchemy import insert, select, update, delete, and_
+from sqlalchemy import insert, select, update, delete, and_, any_
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine, create_async_engine, async_sessionmaker
 
 from app.services.database.dao import IDAO
@@ -106,7 +106,7 @@ class PostgresDAO(IDAO):
                 filters_table.c.manufacture_year_min <= manufacture_year,
                 filters_table.c.manufacture_year_max >= manufacture_year
             )
-        ).filter(filters_table.model.contains(model))
+        ).filter(model == any_(filters_table.c.model))
         res = await self._session.execute(q)
         ids = []
         for user_id in res.all():

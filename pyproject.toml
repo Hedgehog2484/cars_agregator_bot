@@ -14,9 +14,9 @@ sqlalchemy = "^2.0.29"
 openai = "^1.23.2"
 loguru = "^0.7.2"
 asyncpg = "^0.29.0"
-pyrogram = "^2.0.106"
 apscheduler = "^3.10.4"
 fastapi = "^0.111.0"
+pyrogram = "^2.0.106"
 
 
 [build-system]
