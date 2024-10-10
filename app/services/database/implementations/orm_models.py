@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, Integer, Boolean, String, Date, ForeignKey
+from sqlalchemy import Table, Column, Integer, Boolean, String, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import registry
 
@@ -10,7 +10,7 @@ users_table = Table(
     postgres_mapper_registry.metadata,
     Column("tg_id", Integer, nullable=False, autoincrement=False, primary_key=True),
     Column("is_admin", Boolean, nullable=False),
-    Column("subscription_ends", Date, nullable=True),
+    Column("subscription_ends", DateTime, nullable=True),
     Column("is_trial_used", Boolean, nullable=False)
 )
 

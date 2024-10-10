@@ -73,7 +73,7 @@ def is_show_trial(data: dict, widget: Whenable, dialog_manager: DialogManager) -
 
 start_window = Window(
     Format("{menu_message_text}"),
-    WebApp(text=Const("Open webapp"), url=Const("https://pepepu.ru"), id="webapp_btn", when="subscribed"),
+    WebApp(text=Const("Настроить фильтры"), url=Const("https://pepepu.ru"), id="webapp_btn", when="subscribed"),
     Button(Const("Попробовать бесплатно"), id="start_trial_btn", on_click=start_trial, when=is_show_trial),
     Start(text=Const("Купить подписку"), id="buy_subscription", state=states.user.BuySubscription.PAYMENT, when="not_subscribed"),
     state=states.user.MainMenu.MAIN_STATE,
