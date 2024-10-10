@@ -59,4 +59,7 @@ async def main() -> None:
     loop.create_task(start_webapp(db=db))
     await start_userbot(client)
     """
-    await asyncio.gather(start_bot(dp=dp, bot=bot), start_userbot(client), start_webapp(db=db))
+    t = threading.Thread(target=start_webapp, args=(db,), daemon=True)
+    t.run()
+    await asyncio.gather(start_bot(dp=dp, bot=bot), start_userbot(client))
+    t.join()

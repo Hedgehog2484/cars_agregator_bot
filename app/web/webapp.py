@@ -24,7 +24,7 @@ async def get_user_settings(request: Request, db: PostgresDAO = Depends()):
     await save_user_settings(await request.json(), db)
 
 
-async def start_webapp(db):
+def start_webapp(db):
     app = FastAPI()
     app.dependency_overrides[PostgresDAO] = db
     # app.mount("/web/static", StaticFiles(directory="static", html=True), name="static")
