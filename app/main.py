@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import threading
 
 from pyrogram import Client
 from aiogram import Dispatcher, Bot
@@ -52,7 +53,10 @@ async def setup() -> tuple[Dispatcher, Bot, Client, PostgresDAO]:
 
 async def main() -> None:
     dp, bot, client, db = await setup()
+    """
     loop = asyncio.get_event_loop()
     loop.create_task(start_bot(dp=dp, bot=bot))
     loop.create_task(start_webapp(db=db))
     await start_userbot(client)
+    """
+    await asyncio.gather(start_bot(dp=dp, bot=bot), start_userbot(client), start_webapp(db=db))
