@@ -53,13 +53,9 @@ async def setup() -> tuple[Dispatcher, Bot, Client, PostgresDAO]:
 
 async def main() -> None:
     dp, bot, client, db = await setup()
-    """
     loop = asyncio.get_event_loop()
     loop.create_task(start_bot(dp=dp, bot=bot))
-    loop.create_task(start_webapp(db=db))
-    await start_userbot(client)
-    """
-    t = threading.Thread(target=start_webapp, args=(db,), daemon=True)
-    t.run()
-    await asyncio.gather(start_bot(dp=dp, bot=bot), start_userbot(client))
-    t.join()
+    loop.create_task(start_userbot(client))
+    await asyncio.gather(
+        loop.run_in_executor(None, start_webapp, (db,))
+    )
