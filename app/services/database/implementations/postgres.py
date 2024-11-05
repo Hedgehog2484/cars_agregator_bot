@@ -99,12 +99,12 @@ class PostgresDAO(IDAO):
     ) -> list[int]:
         q = select(filters_table.c.user_tg_id).where(
             and_(
-                filters_table.c.price_min <= price,
-                filters_table.c.price_max >= price,
-                filters_table.c.mileage_min <= mileage,
-                filters_table.c.mileage_max >= mileage,
-                filters_table.c.manufacture_year_min <= manufacture_year,
-                filters_table.c.manufacture_year_max >= manufacture_year
+                filters_table.c.price_min <= price if price is not None else True,
+                filters_table.c.price_max >= price if price is not None else True,
+                filters_table.c.mileage_min <= mileage if mileage is not None else True,
+                filters_table.c.mileage_max >= mileage if mileage is not None else True,
+                filters_table.c.manufacture_year_min <= manufacture_year if manufacture_year is not None else True,
+                filters_table.c.manufacture_year_max >= manufacture_year if manufacture_year is not None else True
             )
         ).filter(model == any_(filters_table.c.model))
         res = await self._session.execute(q)
