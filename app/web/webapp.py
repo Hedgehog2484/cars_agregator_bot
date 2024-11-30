@@ -17,8 +17,8 @@ from app.services.database.implementations.postgres import PostgresDAO
 
 
 # @app.get("/", response_class=FileResponse)
-async def send_page(request: Request):
-    return FileResponse("web/index.html")
+#async def send_page(request: Request):
+#    return FileResponse("web/index.html")
 
 
 # @app.get("/save_settings")
@@ -29,9 +29,9 @@ async def get_user_settings(request: Request, db: PostgresDAO = Depends()):
 def start_webapp(db):
     app = FastAPI()
     app.dependency_overrides[PostgresDAO] = db
-    # app.mount("/web/static", StaticFiles(directory="static", html=True), name="static")
+    app.mount("/", StaticFiles(directory="web/static", html=True), name="static")
 
-    app.router.get("/", response_class=FileResponse)(send_page)
+    # app.router.get("/", response_class=FileResponse)(send_page)
     app.router.post("/save_settings")(get_user_settings)
     # uvicorn.run(app, host="0.0.0.0", port=8432, ssl_keyfile="./0.0.0.0-key.pem", ssl_certfile="./0.0.0.0.pem")
     uvicorn.run(
