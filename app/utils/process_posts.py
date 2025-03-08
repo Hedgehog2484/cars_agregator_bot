@@ -98,7 +98,10 @@ async def processing(
 Вот текст:\n
 """
     # img = await message.download(in_memory=True)  # LMAO it returns _io.BytesIO, not str.
-    media = await message.get_media_group()
+    try:
+        media = await message.get_media_group()
+    except Exception as e:
+        return
     if len(media) < 3:
         logging.info("Media in message < 3")
         return
