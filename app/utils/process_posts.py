@@ -123,6 +123,7 @@ async def processing(
 
     # TODO: выгружать пользователей частями (и скорее всего прям в ф-ии posts_mailing).
     users_ids = await db.get_users_ids_by_filters(**get_filters_values_from_text(message_text))
+    logging.error(f"users: {users_ids}")
     await posts_mailing(users_ids, message_text, downloaded_media_list, bot)
     """
     scheduler.add_job(
