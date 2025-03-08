@@ -1,8 +1,11 @@
+import logging
+
 from app.services.database.implementations.postgres import PostgresDAO
 from app.models import UserFilters
 
 
 async def save_user_settings(data: dict, db: PostgresDAO):
+    logging.info("SUS")
     filters = UserFilters(
         user_id=int(data.get("user_id")),
         model=data.get("model"),
@@ -15,4 +18,5 @@ async def save_user_settings(data: dict, db: PostgresDAO):
         city=[]
     )
     await db.update_user_filters(filters)
+    logging.info("SAVED")
     await db.commit()
